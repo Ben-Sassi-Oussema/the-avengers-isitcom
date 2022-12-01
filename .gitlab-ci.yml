@@ -13,11 +13,20 @@ lint_dockerfile:
 
 htmllint:
   image: node:latest
+  allow_failure: true
   stage: lint
   script:
     - npm install -g htmllint-cli
     - htmllint init
     - htmllint
+
+csslint:
+  stage: lint
+  image: node:latest
+  allow_failure: true
+  script:
+    - npm install -g csslint
+    - csslint .
 
 # Job test html pour tester la validité html 5
 html5_validator:
