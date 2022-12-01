@@ -1,27 +1,28 @@
 # This file is a template, and might need editing before it works on your project.
 stages:
-  - test
-  - lint
+  - test_checkstyle 
+  - test_lint
+  - test_code_quality
   - build
-  - security
+  - test_security
 
 lint_dockerfile:
   image: hadolint/hadolint:latest-debian
-  stage: lint
+  stage: test_lint
   script:
     - hadolint Dockerfile
 
 htmllint:
   image: node:latest
   allow_failure: true
-  stage: lint
+  stage: test_lint
   script:
     - npm install -g htmllint-cli
     - htmllint init
     - htmllint
 
 csslint:
-  stage: lint
+  stage: test_lint
   image: node:latest
   allow_failure: true
   script:
@@ -33,7 +34,7 @@ variables:
   GIT_DEPTH: "0"  # Tells git to fetch all the branches of the project, required by the analysis task
 sonarcloud-check:
   allow_failure: true
-  stage: test
+  stage: test_code_quality
   image:
     name: sonarsource/sonar-scanner-cli:latest
     entrypoint: [""]
@@ -44,10 +45,9 @@ sonarcloud-check:
   script:
     - sonar-scanner
 
-
 # Job test html pour tester la validité html 5
 html5_validator:
-  stage: test
+  stage: test_checkstyle
   image: cyb3rjak3/html5validator:latest-alpine
   script:
     - html5validator --root . --also-check-css --log INFO
@@ -74,14 +74,11 @@ docker-build-master:
   only:
     - master
  
-
-
-
  #https://forge.etsi.org/rep/help/ci/examples/container_scanning.md
 
 container_scanning_master:
   image: docker:stable
-  stage: security
+  stage: test_security
   allow_failure: true
   variables:
     DOCKER_DRIVER: overlay2
