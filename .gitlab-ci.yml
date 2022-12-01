@@ -31,14 +31,6 @@ csslint:
     - npm install -g csslint
     - csslint .
 
-# test_cypress:
-#   image: cypress/browsers:node12.14.1-chrome85-ff81
-#   stage: test_integration
-#   script:
-#     - npm ci --prefer-offline
-#     - npm start &
-#     - npx cypress run
-
 minify_js:
   image: node:latest
   stage: test_minify
