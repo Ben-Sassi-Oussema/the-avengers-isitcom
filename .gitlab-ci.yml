@@ -10,7 +10,14 @@ lint_dockerfile:
   stage: lint
   script:
     - hadolint Dockerfile
-  
+
+htmllint:
+  stage: lint
+  script:
+    - npm install -g htmllint-cli
+    - htmllint init
+    - htmllint
+
 # Job test html pour tester la validité html 5
 html5_validator:
   stage: test
