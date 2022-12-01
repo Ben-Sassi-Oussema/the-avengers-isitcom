@@ -1,6 +1,7 @@
 # This file is a template, and might need editing before it works on your project.
 stages:
-  - test_checkstyle 
+  - test_checkstyle
+  - test_integration
   - test_lint
   - test_code_quality
   - build
@@ -31,7 +32,7 @@ csslint:
 
 test_cypress:
   image: cypress/browsers:node12.14.1-chrome85-ff81
-  stage: test
+  stage: test_integration
   script:
     # install dependencies
     - npm ci
