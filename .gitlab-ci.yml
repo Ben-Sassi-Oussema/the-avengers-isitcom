@@ -35,10 +35,8 @@ eslint:
   script:
     # Install ESLint in this docker container
     - npm install -g eslint
-    # Configure ESLint (will read your .eslintrc file)
-    - eslint --init
     # Run ESLint
-    - eslint js/*.js
+    - eslint js/
 
 variables:
   SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"  # Defines the location of the analysis task cache
