@@ -43,8 +43,6 @@ sonarcloud-check:
       - .sonar/cache
   script:
     - sonar-scanner
-  only:
-    - master
 
 
 # Job test html pour tester la validité html 5
