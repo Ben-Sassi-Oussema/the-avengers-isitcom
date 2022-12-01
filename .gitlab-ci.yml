@@ -50,7 +50,7 @@ minify_js:
 
 minify_css:
   image: node:latest
-  stage: minify
+  stage: test_minify
   before_script:
     - npm install uglifycss -g
   script:
