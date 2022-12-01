@@ -48,6 +48,19 @@ minify_js:
     - mkdir -p ./dist
     - uglifyjs js/*.js --output dist/*.min.js
 
+minify_css:
+  image: node:latest
+  stage: minify
+  before_script:
+    - npm install uglifycss -g
+  script:
+    - mkdir -p ./dist
+    - uglifycss css/*.css --output dist/*.min.css
+  artifacts:
+    expire_in: 1 week
+    paths:
+      - dist
+
 variables:
   SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"  # Defines the location of the analysis task cache
   GIT_DEPTH: "0"  # Tells git to fetch all the branches of the project, required by the analysis task
