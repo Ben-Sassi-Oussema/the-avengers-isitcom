@@ -12,6 +12,7 @@ lint_dockerfile:
     - hadolint Dockerfile
 
 htmllint:
+  image: node:latest
   stage: lint
   script:
     - npm install -g htmllint-cli
