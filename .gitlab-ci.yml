@@ -1,0 +1,79 @@
+# This file is a template, and might need editing before it works on your project.
+stages:
+  - test
+  - lint
+  - build
+  - security
+
+lint_dockerfile:
+  image: hadolint/hadolint:latest-debian
+  stage: lint
+  script:
+    - hadolint Dockerfile
+  
+# Job test html pour tester la validité html 5
+html5_validator:
+  stage: test
+  image: cyb3rjak3/html5validator:latest-alpine
+  script:
+    - html5validator --root . --also-check-css --log INFO
+
+
+
+ # Le nom du Job est docker-build-master.
+docker-build-master:
+  # nous avons besoin de la partie client de docker pour utiliser les comandes necessaires
+  # l'image docker pour le master est par défaut la plus récente donc Latest en anglais.
+  image: docker:latest
+  # pour définir dans quel étape ce Job va se lancer , et dans ce cas c'est le stage build.
+  stage: build
+  # nous avons besoin de la partie server de docker pour pouvoir construire une image
+  # un service docker utilisé pour effectuer le lancement du job
+  services:
+    - docker:dind
+  before_script:
+    # avant le lancement du script, une connection s'effectue avec l'identifiant "$CI_REGISTRY_USER" et le mot de passe "$CI_REGISTRY_PASSWORD"d'utilisateur déjà déclarés comme variables d'environnement.
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+  script:
+    # dès la connection, la création de l'image docker "$CI_REGISTRY_IMAGE" avec build pull et le le push .
+    - docker build --pull -t "$CI_REGISTRY_IMAGE" .
+    - docker push "$CI_REGISTRY_IMAGE"
+    # ce job s'effectue seulement au master.
+  only:
+    - master
+ 
+
+
+
+ #https://forge.etsi.org/rep/help/ci/examples/container_scanning.md
+
+container_scanning_master:
+  image: docker:stable
+  stage: security
+  allow_failure: true
+  variables:
+    DOCKER_DRIVER: overlay2
+  services:
+    - docker:stable-dind
+  script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+    - docker run -d --name db arminc/clair-db:latest
+    - docker run -p 6060:6060 --link db:postgres -d --name clair --restart on-failure arminc/clair-local-scan:v2.0.1
+    - apk add -U wget ca-certificates
+    - docker pull "$CI_REGISTRY_IMAGE"
+    - wget https://github.com/arminc/clair-scanner/releases/download/v8/clair-scanner_linux_amd64
+    - mv clair-scanner_linux_amd64 clair-scanner
+    - chmod +x clair-scanner
+    - touch clair-whitelist.yml
+    - while( ! wget -q -O /dev/null http://docker:6060/v1/namespaces ) ; do sleep 1 ; done
+    - retries=0
+    - echo "Waiting for clair daemon to start"
+    - while( ! wget -T 10 -q -O /dev/null http://docker:6060/v1/namespaces ) ; do sleep 1 ; echo -n "." ; if [ $retries -eq 10 ] ; then echo " Timeout, aborting." ; exit 1 ; fi ; retries=$(($retries+1)) ; done
+    - ./clair-scanner -c http://docker:6060 --ip $(hostname -i) -r gl-container-scanning-report.json -l clair.log -w clair-whitelist.yml ${CI_REGISTRY_IMAGE}
+  artifacts:
+    reports:
+      container_scanning: gl-container-scanning-report.json
+  only:
+    - master
+
+
