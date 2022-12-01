@@ -54,8 +54,6 @@ html5_validator:
   script:
     - html5validator --root . --also-check-css --log INFO
 
-
-
  # Le nom du Job est docker-build-master.
 docker-build-master:
   # nous avons besoin de la partie client de docker pour utiliser les comandes necessaires
